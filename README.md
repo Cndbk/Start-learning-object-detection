@@ -8,7 +8,7 @@
 - 向水平(竖直)方向滑动，比如1个像素(步长自定)，再取一个10x10大小的框，判断新取出区域是不是目标；
 - 如此重复直到把图片覆盖完全
 
-![img](./目标检测/v2-282a72df1bc14de5f9c534700756da08_b.webp)
+![img](./images/v2-282a72df1bc14de5f9c534700756da08_b.webp)
 
 在滑框过程中，考虑到相机远近产生的尺度变化，所取框的大小不应该限于一个固定值，应该根据实际情况设置多个大小的框，比如之前的例子，如果我们需要检测的最小物体是10x10， 最大物体是200x200， 那么可以在这俩个区间之间设置一些大小，如30x30， 70x70等。总结下：**滑框法其实是把检测问题转换成了图片分类问题。**
 
@@ -32,7 +32,7 @@ selective search的策略是，尽可能遍历所有的尺度，但是不同于�
 
 图像中区域特征比像素更具代表性，作者使用基于graph的图像分割算法(https://blog.csdn.net/m0_38002423/article/details/94593560)产生图像初始区域，使用贪心算法对区域进行迭代分组:
 
-![image-20200912150058751](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912150058751.png)
+![image-20200912150058751](./images/image-20200912150058751.png)
 
 1. ) 先根据《Efficient Graph-Based Image Segmentation》 这篇论文分割的图片画出多个框，把所有框放入列表Region中；
 2. ) 根据相似程度（颜色，纹理，大小，形状等），计算Region中框之间的俩俩形似度，把相似度放入列表A中
@@ -43,11 +43,11 @@ selective search的策略是，尽可能遍历所有的尺度，但是不同于�
 
 在每次迭代中，形成更大的区域并将其添加到区域提议列表中。以自下而上的方式创建从较小的细分segments到较大细分segments的区域提案。
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-8a3638c38c16e20840c70d28946a0104_720w.jpg)
+![img](./images/v2-8a3638c38c16e20840c70d28946a0104_720w.jpg)
 
 Hierarchical Grouping Algorithm的具体操作如下图：
 
-![image-20200912163321876](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912163321876.png)
+![image-20200912163321876](./images/image-20200912163321876.png)
 
 **输入：**图片（三通道）
 
@@ -67,13 +67,13 @@ Hierarchical Grouping Algorithm的具体操作如下图：
 
 #### 颜色距离
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-2f0a1e96eec6b444adc5a256b9b501dc_720w.png)
+![img](./images/v2-2f0a1e96eec6b444adc5a256b9b501dc_720w.png)
 
 对各个通道计算颜色直方图，然后取各个对应bins的直方图最小值、
 
 #### 纹理距离
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-b99515e2b9920eed0fdff6091bf8945b_720w.png)
+![img](./images/v2-b99515e2b9920eed0fdff6091bf8945b_720w.png)
 
 纹理距离计算方式和颜色距离几乎一样，我们计算每个区域的快速sift特征，其中方向个数为8，3个通道，每个通道bins为10，对于每幅图像得到240维的纹理直方图，然后通过上式计算距离。
 
@@ -81,17 +81,17 @@ Hierarchical Grouping Algorithm的具体操作如下图：
 
 如果仅仅是通过颜色和纹理特征合并的话，很容易使得合并后的区域不断吞并周围的区域，后果就是多尺度只应用在了那个局部，而不是全局的多尺度。因此我们给小的区域更多的权重，这样保证在图像每个位置都是多尺度的在合并。
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-78e6d61af4a6e5f62b7c577030cad5f6_720w.png)
+![img](./images/v2-78e6d61af4a6e5f62b7c577030cad5f6_720w.png)
 
 #### 区域的合适度度距离
 
 不仅要考虑每个区域特征的吻合程度，区域的吻合度也是重要的，吻合度的意思是合并后的区域要尽量规范，不能合并后出现断崖的区域，这样明显不符合常识，体现出来就是区域的外接矩形的重合面积要大。因此区域的合适度距离定义为：
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-7e2a63c642735a9c6031097e17526b2a_720w.png)
+![img](./images/v2-7e2a63c642735a9c6031097e17526b2a_720w.png)
 
 #### 综合各种距离
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-d8b1780ad60b09d995fb3578106f635a_720w.png)
+![img](./images/v2-d8b1780ad60b09d995fb3578106f635a_720w.png)
 
 #### 参数初始化多样性
 
@@ -105,7 +105,7 @@ Hierarchical Grouping Algorithm的具体操作如下图：
 
 ## **Region Proposal Net (RPN 锚点提框的机制)**
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-68dbe8ed2d039e925fffa055244439c5_720w.jpg)
+![img](./images/v2-68dbe8ed2d039e925fffa055244439c5_720w.jpg)
 
 1、Input Image经过CNN特征提取，**首先**来到Region Proposal网络。由Regio Proposal Network输出的Classification，这**并不是**判定物体在COCO数据集上对应的80类中哪一类，而是输出一个Binary的值p，可以理解为p∈[0, 1]，人工设定一个threshold=0.5。
 
@@ -113,7 +113,7 @@ RPN网络做的事情就是，如果一个Region的 p>=0.5，则认为这个Regi
 
 有个很重要的概念：锚点。理解RPN的关键也就在锚点上。锚点，字面理解就是标定位置的固定的点。在提框机制中，是预先设定好一些固定的点(anchor)和框(anchor box)的意思。图示一下：
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-0fb4a9f44cf38479969319a03e166cfe_720w.jpg)
+![img](./images/v2-0fb4a9f44cf38479969319a03e166cfe_720w.jpg)
 
 如上图，假设在原来的图像上设定4个锚点(2x2)，那么原图就可以看作分成2x2的格子，每个格子的中心叫做一个锚点。以锚点为中心，给定两个宽高比(1:2, 2:1)，确定一个宽度或者高度(100px)，画两个框，绿色和红色的框就是锚点框(anchor box)。也就是说，我们看作每一个锚点都可以产生俩个锚点框，这些框就是固定在这里存在的，不会变也不会动。
 
@@ -131,7 +131,7 @@ RPN网络做的事情就是，如果一个Region的 p>=0.5，则认为这个Regi
 
 由于滑动窗口，同一个人可能有好几个框(每一个框都带有一个分类器得分)
 
-![这里写图片描述](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/20160930144735714)
+![这里写图片描述](./images/20160930144735714)
 
 而我们的目标是一个人只保留一个最优的框：
 
@@ -139,15 +139,15 @@ RPN网络做的事情就是，如果一个Region的 p>=0.5，则认为这个Regi
 
 **（1）**将所有框的得分排序，选中最高分及其对应的框：
 
-![这里写图片描述](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/20160930152040246)
+![这里写图片描述](./images/20160930152040246)
 
 **（2）**遍历其余的框，如果和当前最高分框的重叠面积(IOU)大于一定阈值，我们就将框删除。
 
-![这里写图片描述](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/20160930152407168)
+![这里写图片描述](./images/20160930152407168)
 
 **（3）**从未处理的框中继续选一个得分最高的，重复上述过程。
 
-![这里写图片描述](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/20160930144745652)
+![这里写图片描述](./images/20160930144745652)
 
 ## **Bounding Box Regression(边框回归)**
 
@@ -155,7 +155,7 @@ RPN网络做的事情就是，如果一个Region的 p>=0.5，则认为这个Regi
 
 ### **为什么要边框回归？**
 
-![image-20200912151523233](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912151523233.png)
+![image-20200912151523233](./images/image-20200912151523233.png)
 
 对于上图，绿色的框表示Ground Truth, 红色的框为Selective Search提取的Region Proposal。那么即便红色的框被分类器识别为飞机，但是由于红色的框定位不准(IoU<0.5)， 那么这张图相当于没有正确的检测出飞机。 如果我们能对红色的框进行微调， 使得经过微调后的窗口跟Ground Truth 更接近， 这样岂不是定位会更准确。 确实，Bounding-box regression 就是用来微调这个窗口的。
 
@@ -163,21 +163,21 @@ RPN网络做的事情就是，如果一个Region的 p>=0.5，则认为这个Regi
 
 对于窗口一般使用四维向量(x,y,w,h)来表示， 分别表示窗口的中心点坐标和宽高。 对于下图, 红色的框 P 代表原始的Proposal, 绿色的框 G 代表目标的 Ground Truth， 我们的目标是寻找一种关系使得输入原始的窗口 P 经过映射得到一个跟真实窗口 G 更接近的回归窗口G^。
 
-![image-20200912151651844](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912151651844.png)
+![image-20200912151651844](./images/image-20200912151651844.png)
 
 边框回归的目的既是：给定(Px,Py,Pw,Ph)(Px,Py,Pw,Ph)寻找一种映射f， 使得：
 
-![image-20200912151846830](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912151846830.png)
+![image-20200912151846830](./images/image-20200912151846830.png)
 
 ### **边框回归怎么做的？**
 
 那么经过何种变换才能从图 2 中的窗口 P 变为窗口G^呢？ 比较简单的思路就是: *平移+尺度放缩*
 
-![image-20200912152135516](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912152135516.png)
+![image-20200912152135516](./images/image-20200912152135516.png)
 
 ## **多通道图像卷积基础**
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-8d72777321cbf1336b79d839b6c7f9fc_720w.jpg)
+![img](./images/v2-8d72777321cbf1336b79d839b6c7f9fc_720w.jpg)
 
 如图所示，输入有3个通道，同时有2个卷积核。对于每个卷积核，先在输入3个通道分别作卷积，再将3个通道结果加起来得到卷积输出。所以对于某个卷积层，无论输入图像有多少个通道，输出图像通道数总是等于卷积核数量！
 
@@ -195,15 +195,15 @@ RPN网络做的事情就是，如果一个Region的 p>=0.5，则认为这个Regi
 
 RCNN 提出之前，主要是手工设计特征：
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-8f591d7b163877f926cab2400072e3a7_720w.jpg)
+![img](./images/v2-8f591d7b163877f926cab2400072e3a7_720w.jpg)
 
 用CNN替代手动设计特征：
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-a7d7fc790a45393516e45f1ce8cf6bb4_720w.jpg)
+![img](./images/v2-a7d7fc790a45393516e45f1ce8cf6bb4_720w.jpg)
 
 ## RCNN流程图如下：
 
-![image-20200912150843034](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912150843034.png)
+![image-20200912150843034](./images/image-20200912150843034.png)
 
 第一步是对输入的图片进行区域提取，R-CNN文中用的是selective search的方法（当然也可以用其他的），之后对每一块提取出来的区域缩放到统一的大小，输入CNN中使之输出一个Nx1的特征向量，然后用分类器（文中使用SVM，讨论了softmax的可行性）判断该区域是不是某类物体，接着分类完成之后对选出的区域做了一个**边框回归（bounding box regression）**处理得到最后的结果：物体种类和框的位置。
 
@@ -228,29 +228,29 @@ R-CNN的作者认为，CNN输出的特征向量里其实是包含了一定的位
 
 还是从最直观想法开始，一个物体预测框的位置表示是 (Px, Py, Pw, Ph)，位置的真值ground truth是 (Gx, Gy, Gw, Gh)， 这种损失函数可以用L1，L2，就看看用L2loss之后会发生什么吧？
 
-![image-20200912153036029](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153036029.png)
+![image-20200912153036029](./images/image-20200912153036029.png)
 
 若检测结果如下图：
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-95a479322f85239aa39953e437fe3f02_720w.jpg)
+![img](./images/v2-95a479322f85239aa39953e437fe3f02_720w.jpg)
 
 同一个图上有俩个人，绿色框是真值框，红色框是预测框，我们规定IoU>0.8是正确预测（貌似有点严格，只是为了说明问题），明显的大框的预测是对的，小框的预测是错的。但是，此时用L2 loss去计算俩个预测框的损失，确有可能得到同样的值，假设是 L1 ，因为在图中肉眼观测框的左上角点偏离的像素相似，宽高也相似。这样相当于是**对于同一个种类的大物体和小物体判断预测值损失的尺度不同**，那么模型就会迷惑，因为输入都是缩放到同样大小的图片，对于loss是 L1 的特征，俩个预测结果一个对一个错，应该怎样更新参数呢？这样就无法给出一个好的学习结果。（L1loss有同样的问题）
 
 为了解决这个问题，保证尺度不变性。R-CNN没有直接学习 x, y, w, h 的数值，而是学习了比例。真值框和预测框的宽高比是一个大于0的值，CNN的输出却无法保证大于0，所以表示宽高比为指数函数的形式：
 
-<img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153246330.png" alt="image-20200912153246330" style="zoom:80%;" />
+<img src="./images/image-20200912153246330.png" alt="image-20200912153246330" style="zoom:80%;" />
 
 其中 e^d_w(P) 和  e^d_h(P) 分别是宽高的缩放比例。角点的平移误差为：
 
-<img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153318555.png" alt="image-20200912153318555" style="zoom:80%;" />
+<img src="./images/image-20200912153318555.png" alt="image-20200912153318555" style="zoom:80%;" />
 
 学习的目标是其中的比例：
 
-![image-20200912153503467](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153503467.png)
+![image-20200912153503467](./images/image-20200912153503467.png)
 
-R-CNN论文中学习框回归的输入是AlexNet中第五个pooling层输出的特征，论文中表示为<img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153626386.png" alt="image-20200912153626386" style="zoom:80%;" /> , 参数 <img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153635508.png" alt="image-20200912153635508" style="zoom:80%;" />是可学习的，损失函数就定义为：
+R-CNN论文中学习框回归的输入是AlexNet中第五个pooling层输出的特征，论文中表示为<img src="./images/image-20200912153626386.png" alt="image-20200912153626386" style="zoom:80%;" /> , 参数 <img src="./images/image-20200912153635508.png" alt="image-20200912153635508" style="zoom:80%;" />是可学习的，损失函数就定义为：
 
-![image-20200912153657961](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912153657961.png)
+![image-20200912153657961](./images/image-20200912153657961.png)
 
 R-CNN是一篇非常厉害的文章，引进了CNN做特征提取，给出了完善的训练方法，显著提高物体检测准确率，探索用softmax直接代替SVM的可能性，并且完善了框回归机制。同样也有缺点，训练需要分好几段，很多中间结果占很大硬盘空间，训练时间长，测试时间也很长，VGG-16在GPU(不知道什么型号)上需要跑47s才能处理一帧。
 
@@ -266,17 +266,17 @@ R-CNN中分类是用全连接层实现的，所以要求输入的图片尺寸必
 
 SPP Net主要添加了一个SPP(spatial pyramid pooling)层，这一层可以对不同大小的图片产生固定长度的特征向量。用原论文中的图解释最清楚：
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-7016ab41c23dde15f9f2f73c95e8005b_720w.jpg)
+![img](./images/v2-7016ab41c23dde15f9f2f73c95e8005b_720w.jpg)
 
 图中的意思是，对于不同尺寸的输入图片A和B，到SPP层时的输入分别是：$1×256×h_A*w_A$ 和 $1×256×h_B*w_B$ （1指batch_size=1, 256指通道数，h, w分别是高和宽），不管A和B的特征图宽高是多少，在特征图上划4X4, 2X2, 1X1的格子，对这些格子里的像素进行pooling操作，最后把三个尺度的输出contact到一起，组成一个特征向量做分类。这样无论输入的图像是多大，都可以有一个固定长度的特征向量。因此，SPP Net对一张图片进行一次特征提取，根据感受野的传递，在特征图上找出候选框对应的区域，把那一块单独提出来输入spp层，产生特征向量做分类。
 
 特别说明一下，一次对整张图提取CNN，根据感受野找到候选框对应的特征和把候选框扣出来再用CNN提特征得到的**俩种特征是不同的**，但是都可以用来做分类。有个更清楚的流程总结：
 
-![image-20200912163538524](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912163538524.png)
+![image-20200912163538524](./images/image-20200912163538524.png)
 
 这个方法也有**缺点**，不能进行反向传播，所以训练的时候分别训练前半段网络和后面的FC层，使训练步骤更复杂。不能反向传播的原因一度困扰着我，一个pooling操作，为什么就不能回传了？主要还是这个pyramid的问题，特征图被分为4x4, 2x2, 1x1三个层级，每个层级的pooling层都能回传，只是这三个在回传之后要怎样融合到一起？简单相加也没有依据，所以不能进行反向传播。
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/20170618165250909)
+![img](./images/20170618165250909)
 
 SPP Net的设计让特征提取的时间成百上千倍的加快，缺点就是训练步骤麻烦。
 
@@ -290,11 +290,11 @@ Fast R-CNN 主要在训练步骤上做了优化，主要是俩个方面： 根�
 
 在Fast R-CNN之前的网络，如R-CNN，SPP Net，在训练时都需要训练一个SVM做分类最后接一个bounding box regressor调整框的位置。继R-CNN探讨过去掉SVM直接用softmax分类的可能性之后，这篇文章做了实践。分类和框回归一起做，叫做multi-task loss。分类直接在原来CNN的基础上加入FC层和softmax即可; 框回归是让CNN的输出直接是bounding box regressor需要的4个比例，偏移量： $t_*:(t_x, t_y, t_w, t_h)$（见2.1），损失函数是smooth L1， 文章中用 $L_loc$ 表示框回归的损失：
 
-![image-20200912155541964](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912155541964.png)
+![image-20200912155541964](./images/image-20200912155541964.png)
 
 文中解释，用smooth L1是因为相比L2 loss，L1对异常值outlier更不敏感。
 
-![image-20200912155722869](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912155722869.png)
+![image-20200912155722869](./images/image-20200912155722869.png)
 
 Fast R-CNN总结一下就是：前面Selective Search提取框的过程配上后面的CNN+softmax，以现在的眼光去比喻，有点像造好了一辆汽车(CNN)，但是在用马(selective search)拉着跑的感觉。因为selective search的计算过程就挺慢的，想让物体检测达到实时，就得改造候选框提取的方法。
 
@@ -310,7 +310,7 @@ Fast R-CNN总结一下就是：前面Selective Search提取框的过程配上后
 
  设计成end2end的网络
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-c0172be282021a1029f7b72b51079ffe_720w.jpg)
+![img](./images/v2-c0172be282021a1029f7b72b51079ffe_720w.jpg)
 
 Faster RCNN其实可以分为4个主要内容：
 
@@ -319,7 +319,7 @@ Faster RCNN其实可以分为4个主要内容：
 3. Roi Pooling。该层收集输入的feature maps和proposals，综合这些信息后提取proposal feature maps，送入后续全连接层判定目标类别。
 4. Classification。利用proposal feature maps计算proposal的类别，同时再次bounding box regression获得检测框最终的精确位置。
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-e64a99b38f411c337f538eb5f093bdf3_720w.jpg)
+![img](./images/v2-e64a99b38f411c337f538eb5f093bdf3_720w.jpg)
 
 上图表示了python版本中的VGG16模型中的faster_rcnn_test.pt的网络结构，可以清晰的看到该网络对于一副任意大小PxQ的图像：
 
@@ -328,13 +328,13 @@ Faster RCNN其实可以分为4个主要内容：
 - RPN网络首先经过3x3卷积，再分别生成positive anchors和对应bounding box regression偏移量，然后计算出proposals；
 - 而Roi Pooling层则利用proposals从feature maps中提取proposal feature送入后续全连接和softmax网络作classification（即分类proposal到底是什么object）。
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-7aecea27835c3fb3523177c18df2611a_720w.jpg)
+![img](./images/v2-7aecea27835c3fb3523177c18df2611a_720w.jpg)
 
 ![img](https://picb.zhimg.com/80/v2-7abead97efcc46a3ee5b030a2151643f_720w.jpg)
 
 先输入一个图像image，用一个CNN提特征，在这段CNN输出的特征图(feature map)上做anchor处理，如上图所示，假设这个层级的特征图通道数是256。那么这个特征图多大，就相当于设定了多少个锚点，比如特征图长宽是13x13, 那就有169个锚点，每一个锚点按照论文中的说法可以产生9个锚点框，这9个锚点框共用一组1×256的特征，即锚点所在位置上所有通道的数据，接一个1×1的卷积核控制维度，做位置回归和前后景判断，这就是RPN的输出。在RPN的输出基础上，对所有anchor box的前景置信度排序，挑选出前top-N的框作为预选框proposal， 继续用一段CNN做进一步特征提取，最后再进行位置回归和物体种类判断。
 
-![img](F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-c93db71cc8f4f4fd8cfb4ef2e2cef4f4_720w.jpg)
+![img](./images/v2-c93db71cc8f4f4fd8cfb4ef2e2cef4f4_720w.jpg)
 
 那么这9个anchors是做什么的呢？借用Faster RCNN论文中的原图，如图7，遍历Conv layers计算获得的feature maps，为每一个点都配备这9种anchors作为初始的检测框。这样做获得检测框很不准确，不用担心，后面还有2次bounding box regression可以修正检测框位置。
 
@@ -360,13 +360,13 @@ YOLO将检测变为一个 regression problem，YOLO 从输入的图像，仅仅�
 
 Yolo算法不再是窗口滑动了，而是直接将原始图片分割成互不重合的小方块，然后通过卷积最后生产这样大小的特征图，基于上面的分析，可以认为特征图的每个元素也是对应原始图片的一个小方块，然后用每个元素来可以预测那些中心点在该小方格内的目标，这就是Yolo算法的朴素思想。
 
-<img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200912170222449.png" alt="image-20200912170222449" style="zoom: 50%;" />
+<img src="./images/image-20200912170222449.png" alt="image-20200912170222449" style="zoom: 50%;" />
 
 Yolo的CNN网络将输入的图片分割成S*S网格，然后每个单元格负责去检测那些中心点落在该格子内的目标，如图所示，可以看到狗这个目标的中心落在左下角一个单元格内，那么该单元格负责预测这个狗。每个单元格会预测 B个边界框（bounding box）以及边界框的置信度（confidence score）。所谓置信度其实包含两个方面，一是这个边界框含有目标的可能性大小，二是这个边界框的准确度。前者记为Pr(object)，当该边界框是背景时（即不包含目标），此时 Pr(object)=0。而当该边界框包含目标时，Pr(object)=1。边界框的准确度可以用预测框与实际框（ground truth）的IOU（intersection over union，交并比）来表征，记为 $IOU_{pred}^{truth}$。因此置信度可以定义为 $P_r(object) * IOU_{pred}^{truth}$。很多人可能将Yolo的置信度看成边界框是否含有目标的概率，但是其实它是两个因子的乘积，预测框的准确度也反映在里面。边界框的大小与位置可以用4个值来表征：(x, y, w, h) ，其中 (x, y)是边界框的中心坐标，而 w 和 h 是边界框的宽与高。还有一点要注意，中心坐标的预测值 (x, y) 是相对于每个单元格左上角坐标点的偏移值，并且单位是相对于单元格大小的，单元格的坐标定义如图6所示。而边界框的 w 和 h 预测值是相对于整个图片的宽与高的比例，这样理论上4个元素的大小应该在 [0, 1] 范围。这样，每个边界框的预测值实际上包含5个元素：(x, y, w, h, c) ，其中前4个表征边界框的大小与位置，而最后一个值是置信度。
 
 
 
-<img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/v2-fdfea5fcb4ff3ecc327758878e4ad6e1_720w.jpg" alt="img" style="zoom:80%;" />
+<img src="./images/v2-fdfea5fcb4ff3ecc327758878e4ad6e1_720w.jpg" alt="img" style="zoom:80%;" />
 
 还有分类问题，对于每一个单元格其还要给出预测出 C 个类别概率值，其表征的是由该单元格负责预测的边界框其目标属于各个类别的概率。但是这些概率值其实是在各个边界框置信度下的条件概率，即<img src="F:/typora_img/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/image-20200909171912818.png" alt="image-20200909171912818" style="zoom:80%;" /> 。值得注意的是，不管一个单元格预测多少个边界框，其只预测一组类别概率值，这是Yolo算法的一个缺点，在后来的改进版本中，Yolo9000是把类别概率预测值与边界框是绑定在一起的。同时，我们可以计算出各个边界框类别置信度（class-specific confidence scores）:
 
